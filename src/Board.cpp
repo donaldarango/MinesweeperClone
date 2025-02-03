@@ -15,20 +15,16 @@ Board::Board(const std::string& configFile) {
     }
     config.close();
 
-
     width = stoi(data.at(0));
     height = stoi(data.at(1));
     configMineCount = stoi(data.at(2));
     currentMineCount = configMineCount;
 
     LoadBoardRand();
-
     LoadBoardData();
-
 }
 
 void Board::LoadBoardData() {
-
     board.resize(height);
     int counter = 0;
     for (int i = 0; i < height; ++i) {
@@ -49,48 +45,41 @@ void Board::LoadBoardData() {
 }
 
 void Board::InitializeSprites(sf::RenderTarget *target) {
-
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
             board[i][j]->Draw(target);
         }
     }
 
-
-    sf::Sprite menuSprite;
-    menuSprite.setTexture(TextureManager::GetTexture("face_happy"));
-    menuSprite.setPosition(width * 32 / 2, height * 32);
+    sf::Sprite menuSprite = sf::Sprite(TextureManager::GetTexture("face_happy"));
+    menuSprite.setPosition({(float)width * 32 / 2, (float)height * 32});
     target->draw(menuSprite);
     faceBounds = menuSprite.getGlobalBounds();
 
     menuSprite.setTexture(TextureManager::GetTexture("debug"));
-    menuSprite.move(128, 0);
+    menuSprite.move({128.0f, 0.0f});
     target->draw(menuSprite);
     debugBounds = menuSprite.getGlobalBounds();
 
     menuSprite.setTexture(TextureManager::GetTexture("test_1"));
-    menuSprite.move(64, 0);
+    menuSprite.move({64.0f, 0.0f});
     target->draw(menuSprite);
     test1Bounds = menuSprite.getGlobalBounds();
 
     menuSprite.setTexture(TextureManager::GetTexture("test_2"));
-    menuSprite.move(64, 0);
+    menuSprite.move({64.0f, 0.0f});
     target->draw(menuSprite);
     test2Bounds = menuSprite.getGlobalBounds();
 
-
     menuSprite.setTexture(TextureManager::GetTexture("test_3"));
-    menuSprite.move(64, 0);
+    menuSprite.move({64, 0});
     target->draw(menuSprite);
     test3Bounds = menuSprite.getGlobalBounds();
-
-
-
 }
 
 void Board::MineCounter(sf::RenderTarget *target) const {
-    sf::Sprite sprite;
-    sprite.setPosition(21, height*32);
+    sf::Sprite sprite = sf::Sprite(TextureManager::GetTexture("digits-"));
+    sprite.setPosition({21.0f, (float)height*32});
 
     std::string mineCountStr = std::to_string(currentMineCount);
     if (currentMineCount < 100 && currentMineCount > 0)
@@ -105,13 +94,10 @@ void Board::MineCounter(sf::RenderTarget *target) const {
         if (currentMineCount > -10)
             mineCountStr = "0" + mineCountStr;
         sprite.setTexture(TextureManager::GetTexture("digits-"));
-        sprite.setPosition(0, height*32);
+        sprite.setPosition({0.0f, (float)height*32});
         target->draw(sprite);
-        sprite.setPosition(21, height*32);
+        sprite.setPosition({21.0f, (float)height*32});
     }
-
-
-
 
     for (int i = 0; i < mineCountStr.length(); ++i) {
         char indexChar = mineCountStr.at(i);
@@ -119,81 +105,68 @@ void Board::MineCounter(sf::RenderTarget *target) const {
             numberString = std::to_string(indexChar - 48);
         sprite.setTexture(TextureManager::GetTexture("digits" + numberString));
         target->draw(sprite);
-        sprite.move(21, 0);
+        sprite.move({21, 0});
     }
-
 }
 
-void Board::DecreaseMineCount(sf::Event *event) {
-    if (event->type == sf::Event::MouseButtonPressed)
+void Board::DecreaseMineCount(const sf::Event *event) {
+    if (event->is<sf::Event::MouseButtonPressed>())
     {
-        if (event->mouseButton.button == sf::Mouse::Right)
+        if (event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Right)
         {
             currentMineCount--;
         }
     }
-
 }
 
-void Board::IncreaseMineCount(sf::Event *event) {
-    if (event->type == sf::Event::MouseButtonPressed)
+void Board::IncreaseMineCount(const sf::Event *event) {
+    if (event->is<sf::Event::MouseButtonPressed>())
     {
-        if (event->mouseButton.button == sf::Mouse::Right)
+        if (event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Right)
         {
             currentMineCount++;
         }
     }
-
 }
 
 Tile * Board::MouseOnTile(sf::RenderWindow &window) {
-
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Right) or sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
         // transform the mouse position from window coordinates to world coordinates
         sf::Vector2f mouse = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-
         for (int i = 0; i < height; ++i) {
-
             for (int j = 0; j < width; ++j) {
-
                 sf::FloatRect bounds = board[i][j]->GetSprite().getGlobalBounds();
                 // hit test
                 if (bounds.contains(mouse)) {
-
                     return board[i][j];
                 }
-
             }
-
         }
     }
     return nullptr;
 }
 
-void Board::PlaceFlag(sf::RenderWindow &window, Tile * tile, sf::Event *event) {
+void Board::PlaceFlag(sf::RenderWindow &window, Tile * tile, const sf::Event *event) {
     if (tile == nullptr)
         return;
 
     tile->Flag();
     DecreaseMineCount(event);
-
 }
 
-void Board::RemoveFlag(sf::RenderWindow &window, Tile *tile, sf::Event *event) {
+void Board::RemoveFlag(sf::RenderWindow &window, Tile *tile, const sf::Event *event) {
     if (tile == nullptr)
         return;
 
     tile->Flag();
     IncreaseMineCount(event);
-
 }
 
-void Board::Reveal(sf::RenderWindow &window, Tile *tile, sf::Event *event) {
+void Board::Reveal(sf::RenderWindow &window, Tile *tile, const sf::Event *event) {
     if (tile == nullptr)
         return;
 
     std::vector<Tile*> adjacentTiles = tile->getAdjacentTiles();
-
     if (tile->getMine()) {
         gameOver = true;
         ShowMines(window);
@@ -232,85 +205,63 @@ void Board::Reveal(sf::RenderWindow &window, Tile *tile, sf::Event *event) {
             adjacentTiles[i]->SetTexture("tile_revealed");
             Reveal(window, adjacentTiles[i], event);
         }
-
     }
-
-
 }
 
 void Board::DebuggerClicked(sf::RenderWindow &window) {
-
     sf::Vector2f mouse = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-
     if (debugBounds.contains(mouse)) {
-
         Tile::Debug();
-
-        }
+    }
 }
 
 void Board::FaceClicked(sf::RenderWindow &window) {
-
     sf::Vector2f mouse = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
     if (faceBounds.contains(mouse)) {
-
         ResetGame();
         board.clear();
 
         LoadBoardRand();
         LoadBoardData();
-
     }
-
 }
 
 void Board::TestBoardClicked(sf::RenderWindow &window) {
-
     sf::Vector2f mouse = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
     if (test1Bounds.contains(mouse)) {
-
         ResetGame();
         board.clear();
 
         LoadSetBoard("boards/testboard1.brd");
         LoadBoardData();
-
     }
 
     else if (test2Bounds.contains(mouse)) {
-
         ResetGame();
         board.clear();
 
         LoadSetBoard("boards/testboard2.brd");
         LoadBoardData();
-
     }
 
     else if (test3Bounds.contains(mouse)) {
-
         ResetGame();
         board.clear();
 
         LoadSetBoard("boards/testboard3.brd");
         LoadBoardData();
-
     }
-
 }
 
 void Board::LoadBoardRand() {
-
     int mineLimit = 0;
     mineData.clear();
     currentMineCount = 0;
 
     for (int i = 0; i < height; ++i) {
-
         for (int j = 0; j < width; ++j) {
-
             int a = rand()%2;
             if (mineLimit == configMineCount)
                 a = 0;
@@ -321,20 +272,16 @@ void Board::LoadBoardRand() {
                 currentMineCount++;
                 mineLimit++;
             }
-
         }
-
     }
 
     std::random_device rd;
     std::mt19937 g(rd());
 
     std::shuffle(mineData.begin(), mineData.end(), g);
-
 }
 
 void Board::LoadSetBoard(const string& boardName) {
-
     mineData.clear();
     currentMineCount = 0;
     std::ifstream mines(boardName, std::ifstream::in);
@@ -350,33 +297,24 @@ void Board::LoadSetBoard(const string& boardName) {
             continue;
     }
     mines.close();
-
 }
 
 void Board::ResetGame() {
-
-
     for (int i = 0; i < board.size(); ++i) {
-
         for (int j = 0; j < board[i].size(); ++j) {
 
             board[i][j]->ResetTile();
             revealedTiles = 0;
             gameOver = false;
-
         }
-
     }
-
 }
 
 bool Board::CheckVictoryByFlag() {
     int mineCounter = currentMineCount;
 
     for (int i = 0; i < height; ++i) {
-
         for (int j = 0; j < width; ++j) {
-
             if (board[i][j]->getMine()) {
                 if (board[i][j]->isFlagged())
                     mineCounter--;
@@ -386,8 +324,8 @@ bool Board::CheckVictoryByFlag() {
             else
                 continue;
         }
-
     }
+
     if (mineCounter <= 0)
         return  true;
     else
@@ -395,24 +333,19 @@ bool Board::CheckVictoryByFlag() {
 }
 
 bool Board::CheckVictoryByReveal() {
-
     if (height * width - revealedTiles == configMineCount)
         return true;
     else
         return false;
-
 }
 
 void Board::DrawVictoryFace(sf::RenderWindow &window) const {
-    sf::Sprite menuSprite;
-    menuSprite.setTexture(TextureManager::GetTexture("face_win"));
-    menuSprite.setPosition(width * 32 / 2, height * 32);
+    sf::Sprite menuSprite = sf::Sprite(TextureManager::GetTexture("face_win"));
+    menuSprite.setPosition({(float)width * 32 / 2, (float)height * 32});
     window.draw(menuSprite);
 
     for (int i = 0; i < height; ++i) {
-
         for (int j = 0; j < width; ++j) {
-
             if (board[i][j]->getMine() && !board[i][j]->isFlagged())
                 board[i][j]->Flag();
         }
@@ -420,26 +353,20 @@ void Board::DrawVictoryFace(sf::RenderWindow &window) const {
 }
 
 void Board::DrawLoserFace(sf::RenderWindow &window) const {
-    sf::Sprite menuSprite;
-    menuSprite.setTexture(TextureManager::GetTexture("face_lose"));
-    menuSprite.setPosition(width * 32 / 2, height * 32);
+    sf::Sprite menuSprite = sf::Sprite(TextureManager::GetTexture("face_lose"));
+    menuSprite.setPosition({(float)width * 32 / 2, (float)height * 32});
     window.draw(menuSprite);
 }
 
 void Board::ShowMines(sf::RenderWindow &window) {
     for (int i = 0; i < height; ++i) {
-
         for (int j = 0; j < width; ++j) {
-
             if (board[i][j]->getMine()) {
                 board[i][j]->SetTexture("tile_revealed");
                 board[i][j]->Reveal();
                 board[i][j]->Draw(&window);
-
             }
-
         }
-
     }
 }
 

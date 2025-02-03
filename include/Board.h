@@ -20,59 +20,36 @@ private:
     sf::FloatRect test1Bounds;
     sf::FloatRect test2Bounds;
     sf::FloatRect test3Bounds;
-    std::vector<std::vector<Tile *>> board;
+    std::vector<std::vector<Tile *> > board;
     std::vector<bool> mineData;
 
 
 public:
     explicit Board(const std::string& configFile);
-
     void LoadBoardData();
-
     void InitializeSprites(sf::RenderTarget *target);
-
     void MineCounter(sf::RenderTarget *target) const;
-
-    void DecreaseMineCount(sf::Event *event);
-
-    void IncreaseMineCount(sf::Event *event);
-
+    void DecreaseMineCount(const sf::Event *event);
+    void IncreaseMineCount(const sf::Event *event);
     Tile * MouseOnTile(sf::RenderWindow &window);
-
-    void PlaceFlag(sf::RenderWindow &window, Tile * tile, sf::Event *event);
-
-    void RemoveFlag(sf::RenderWindow &window, Tile * tile, sf::Event *event);
-
-    void Reveal(sf::RenderWindow &window, Tile * tile, sf::Event *event);
-
+    void PlaceFlag(sf::RenderWindow &window, Tile * tile, const sf::Event *event);
+    void RemoveFlag(sf::RenderWindow &window, Tile * tile, const sf::Event *event);
+    void Reveal(sf::RenderWindow &window, Tile * tile, const sf::Event *event);
     void DebuggerClicked(sf::RenderWindow &window);
-
     void FaceClicked(sf::RenderWindow &window);
-
     void TestBoardClicked(sf::RenderWindow &window);
-
     void LoadBoardRand();
-
     void LoadSetBoard(const string& boardName);
-
     void ResetGame();
-
     bool CheckVictoryByFlag();
-
     bool CheckVictoryByReveal();
-
     void DrawVictoryFace(sf::RenderWindow &window) const;
-
     void DrawLoserFace(sf::RenderWindow &window) const;
-
     void ShowMines(sf::RenderWindow &window);
 
     // GETTERS
-
     int getWidth() const;
-
     int getHeight() const;
-
     bool isGameOver() const;
 
 };

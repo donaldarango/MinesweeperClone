@@ -14,21 +14,18 @@ void TextureManager::LoadTexture(const string& textureName) {
         }
         else
             element -= 48;
-        textures[textureName].loadFromFile(path, sf::IntRect(21*element, 0, 21, 32));
+        textures[textureName].loadFromFile(path, true, sf::IntRect({21*element, 0}, {21, 32}));
         }
     else {
-        path += textureName + ".png";
+        path += textureName + ".png";   
         textures[textureName].loadFromFile(path);
     }
 }
 
 sf::Texture& TextureManager::GetTexture(const string& textureName) {
-
-
     if (textures.find(textureName) == textures.end()){
         LoadTexture(textureName);
     }
-
     return textures[textureName];
 }
 

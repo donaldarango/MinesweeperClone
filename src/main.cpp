@@ -4,71 +4,56 @@
 
 int main()
 {
-
     Board board("boards/config.cfg");
 
-    sf::RenderWindow window(sf::VideoMode(board.getWidth() * 32, (board.getHeight() * 32) + 100), "Minesweeper");
-    // run the program as long as the window is open
+    sf::RenderWindow window(sf::VideoMode({(unsigned)board.getWidth() * 32, ((unsigned)board.getHeight() * 32) + 100}),
+                            "Minesweeper");
 
     while (window.isOpen())
     {
         // check all the window's events that were triggered since the last iteration of the loop
-        sf::Event event;
-        while (window.pollEvent(event))
+        while (const std::optional event = window.pollEvent())
         {
-            if (event.type == sf::Event::MouseButtonPressed) {
+            if (event->is<sf::Event::MouseButtonPressed>()) {
                 if (!board.isGameOver() && (!board.CheckVictoryByFlag() || !board.CheckVictoryByReveal())) {
-
-                    if (event.mouseButton.button == sf::Mouse::Right) {
+                    if (event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Right) {
                         Tile *clickedTile = board.MouseOnTile(window);
                         if (clickedTile == nullptr)
                             continue;
-
                         if (!clickedTile->isRevealed()) {
                             if (!clickedTile->isFlagged())
-                                board.PlaceFlag(window, clickedTile, &event);
+                                board.PlaceFlag(window, clickedTile, &event.value());
                             else if (clickedTile->isFlagged())
-                                board.RemoveFlag(window, clickedTile, &event);
-
+                                board.RemoveFlag(window, clickedTile, &event.value());
                         }
-
                     }
-
-                    if (event.mouseButton.button == sf::Mouse::Left) {
+                    if (event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
                         Tile *clickedTile = board.MouseOnTile(window);
                         if (clickedTile == nullptr) {
                             board.DebuggerClicked(window);
                             board.FaceClicked(window);
                             board.TestBoardClicked(window);
                         }
-
-                        else if(clickedTile->isRevealed())
+                        else if (clickedTile->isRevealed())
                             continue;
                         else if (!clickedTile->isFlagged())
-                            board.Reveal(window, clickedTile, &event);
-
+                            board.Reveal(window, clickedTile, &event.value());
                     }
-
                 }
-
                 else {
-                    if (event.mouseButton.button == sf::Mouse::Left) {
+                    if (event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
                         Tile *clickedTile = board.MouseOnTile(window);
                         if (clickedTile == nullptr) {
                             board.FaceClicked(window);
                             board.TestBoardClicked(window);
-
                         }
                     }
                 }
             }
-
-
             // "close requested" event: we close the window
-            if (event.type == sf::Event::Closed)
+            if (event->is<sf::Event::Closed>())
                 window.close();
         }
-
 
         // clear the window with black color
         window.clear(sf::Color::White);
@@ -79,13 +64,10 @@ int main()
         }
         if (board.isGameOver()) {
             board.DrawLoserFace(window);
-
         }
-
 
         // end the current frame
         window.display();
-
     }
 
     TextureManager::Clear();
